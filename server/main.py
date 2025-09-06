@@ -13,8 +13,9 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    host = os.getenv("MCP_SERVER_HOST", "localhost")
-    port = int(os.getenv("MCP_SERVER_PORT", 8000))
+    # Railway-compatible configuration
+    host = os.getenv("MCP_SERVER_HOST", "0.0.0.0")  # Bind to all interfaces for cloud deployment
+    port = int(os.getenv("PORT", os.getenv("MCP_SERVER_PORT", 8000)))  # Railway uses PORT env var
     
     print(f"Starting MCP Weather Server on {host}:{port}")
     print("Available endpoints:")
@@ -23,11 +24,14 @@ if __name__ == "__main__":
     print(f"  - MCP WebSocket: ws://{host}:{port}/mcp/ws")
     print(f"  - API Documentation: http://{host}:{port}/docs")
     
+    # Production-ready configuration for Railway
+    reload_setting = os.getenv("RAILWAY_ENVIRONMENT") != "production"
+    
     uvicorn.run(
         "main:app",
         host=host,
         port=port,
-        reload=True,
-        reload_dirs=["./"],
+        reload=reload_setting,  # Disable reload in production
+        reload_dirs=["./"] if reload_setting else None,
         log_level="info"
     )
