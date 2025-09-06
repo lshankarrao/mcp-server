@@ -3,13 +3,31 @@ from mcp_server import MCPServer
 import os
 from dotenv import load_dotenv
 
+# Load environment variables at module level (works with direct uvicorn calls)
 load_dotenv()
 
 def create_app():
     """Create and configure the FastAPI application."""
-    mcp_server = MCPServer()
-    return mcp_server.app
+    try:
+        mcp_server = MCPServer()
+        return mcp_server.app
+    except Exception as e:
+        print(f"Error creating MCP server: {e}")
+        # Import FastAPI directly as fallback
+        from fastapi import FastAPI
+        fallback_app = FastAPI(title="MCP Server - Error State")
+        
+        @fallback_app.get("/")
+        async def root():
+            return {"status": "error", "message": f"Server initialization failed: {str(e)}"}
+            
+        @fallback_app.get("/health")
+        async def health():
+            return {"status": "error", "message": f"Server initialization failed: {str(e)}"}
+            
+        return fallback_app
 
+# Create app instance at module level for Railway
 app = create_app()
 
 if __name__ == "__main__":

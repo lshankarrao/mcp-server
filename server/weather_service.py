@@ -13,8 +13,12 @@ logger = logging.getLogger(__name__)
 
 class WeatherService:
     def __init__(self):
-        self.api_key = os.getenv("WEATHER_API_KEY")
+        # Try both possible environment variable names
+        self.api_key = os.getenv("OPENWEATHERMAP_API_KEY") or os.getenv("WEATHER_API_KEY")
         self.base_url = "http://api.openweathermap.org/data/2.5"
+        
+        if not self.api_key:
+            logger.warning("No OpenWeatherMap API key found. Using mock weather data.")
         
     async def get_weather(self, location: str, units: str = "metric") -> WeatherResponse:
         """

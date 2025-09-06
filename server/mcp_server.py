@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import json
 import logging
+import os
 from typing import Dict, Any, List
 from models import (
     MCPRequest, MCPResponse, MCPError, MCPInitializeRequest, MCPInitializeResponse,
@@ -28,17 +29,19 @@ class MCPServer:
         
     def setup_cors(self):
         # Allow localhost for development and Railway domains for production
+        # Note: FastAPI CORS doesn't support wildcards, so we allow all origins for Railway
         allowed_origins = [
             "http://localhost:3000",
             "http://127.0.0.1:3000",
-            "https://*.railway.app",  # Railway subdomains
-            "https://*.up.railway.app",  # Alternative Railway domains
         ]
+        
+        # In production (Railway), allow all origins due to wildcard limitations
+        is_production = os.getenv("RAILWAY_ENVIRONMENT") == "production" or os.getenv("PORT")
         
         self.app.add_middleware(
             CORSMiddleware,
-            allow_origins=allowed_origins,
-            allow_credentials=True,
+            allow_origins=["*"] if is_production else allowed_origins,
+            allow_credentials=not is_production,  # Can't use credentials with allow_origins=["*"]
             allow_methods=["*"],
             allow_headers=["*"],
         )
