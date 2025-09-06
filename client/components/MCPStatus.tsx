@@ -1,7 +1,6 @@
 'use client';
 
 import { ConnectionStatus } from '@/types/mcp';
-import { getServerDisplayName } from '@/lib/server-config';
 import { 
   WifiIcon, 
   ExclamationTriangleIcon, 
@@ -55,6 +54,24 @@ const getStatusInfo = (status: ConnectionStatus) => {
 
 export default function MCPStatus({ status, onReconnect, serverUrl }: MCPStatusProps) {
   const statusInfo = getStatusInfo(status);
+  
+  // Get server display name from URL
+  const getServerDisplayName = (url?: string) => {
+    if (!url) return 'Unknown Server';
+    
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.hostname.includes('railway.app')) {
+        return 'Railway MCP Server';
+      } else if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+        return 'Local MCP Server';
+      } else {
+        return `MCP Server (${urlObj.hostname})`;
+      }
+    } catch {
+      return 'MCP Server';
+    }
+  };
 
   return (
     <div className={`${statusInfo.bgColor} ${statusInfo.borderColor} border rounded-lg p-3 mb-4`}>

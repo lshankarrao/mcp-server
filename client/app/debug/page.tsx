@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getServerUrl, SERVER_CONFIGS } from '@/lib/server-config';
 
 export default function DebugPage() {
   const [envVar, setEnvVar] = useState<string>('Loading...');
-  const [configUrl, setConfigUrl] = useState<string>('Loading...');
   
   useEffect(() => {
     // This will show what Next.js actually sees for the environment variable
     setEnvVar(process.env.NEXT_PUBLIC_MCP_SERVER_URL || 'UNDEFINED');
-    setConfigUrl(getServerUrl());
   }, []);
 
   return (
@@ -25,26 +22,19 @@ export default function DebugPage() {
           </code>
         </div>
         
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h2 className="font-semibold mb-2">Actual Server URL (getServerUrl()):</h2>
-          <code className="bg-white p-2 rounded border block">
-            {configUrl}
-          </code>
-        </div>
-        
         <div className="bg-green-50 p-4 rounded-lg">
-          <h2 className="font-semibold mb-2">Available Server Configurations:</h2>
-          <div className="space-y-2">
+          <h2 className="font-semibold mb-2">Expected Values:</h2>
+          <div className="space-y-2 text-sm">
             <div>
-              <span className="font-medium">Localhost:</span>
-              <code className="ml-2 bg-white p-1 rounded border text-sm">
-                {SERVER_CONFIGS.LOCALHOST}
+              <span className="font-medium">For Localhost:</span>
+              <code className="ml-2 bg-white p-1 rounded border text-xs">
+                http://localhost:8000
               </code>
             </div>
             <div>
-              <span className="font-medium">Railway:</span>
-              <code className="ml-2 bg-white p-1 rounded border text-sm">
-                {SERVER_CONFIGS.RAILWAY}
+              <span className="font-medium">For Railway:</span>
+              <code className="ml-2 bg-white p-1 rounded border text-xs">
+                https://mcp-server-production-3da3.up.railway.app
               </code>
             </div>
           </div>
@@ -54,12 +44,16 @@ export default function DebugPage() {
       <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
         <p className="font-semibold">Status:</p>
         <p>
-          {configUrl === SERVER_CONFIGS.LOCALHOST ? '✅' : '❌'} 
+          {envVar === 'http://localhost:8000' ? '✅' : '❌'} 
           {' '}Configured for localhost development
         </p>
         <p>
-          {configUrl === SERVER_CONFIGS.RAILWAY ? '✅' : '❌'} 
+          {envVar === 'https://mcp-server-production-3da3.up.railway.app' ? '✅' : '❌'} 
           {' '}Configured for Railway production
+        </p>
+        <p>
+          {envVar === 'UNDEFINED' ? '⚠️' : '✅'} 
+          {' '}Environment variable loaded: {envVar !== 'UNDEFINED' ? 'YES' : 'NO'}
         </p>
       </div>
       

@@ -86,6 +86,10 @@ class MCPServer:
                 return self.handle_list_prompts(request)
             elif request.method == "prompts/get":
                 return self.handle_get_prompt(request)
+            elif request.method == "completion/complete":
+                return self.handle_completion(request)
+            elif request.method.startswith("notifications/"):
+                return self.handle_notification(request)
             else:
                 return MCPResponse(
                     id=request.id,
@@ -307,7 +311,7 @@ class MCPServer:
                                        f"Wind Speed: {weather.wind_speed} {'mph' if units == 'imperial' else 'm/s'}"
                             }
                         ],
-                        "data": weather.model_dump()
+                        "isError": False
                     }
                 )
             
@@ -332,7 +336,7 @@ class MCPServer:
                                 "text": forecast_text
                             }
                         ],
-                        "data": forecast
+                        "isError": False
                     }
                 )
             
@@ -352,7 +356,8 @@ class MCPServer:
                                 "type": "text",
                                 "text": insights
                             }
-                        ]
+                        ],
+                        "isError": False
                     }
                 )
             
@@ -372,7 +377,7 @@ class MCPServer:
                                 "text": f"Weather Summary: {summary_data['summary']}\n\nTravel Advisory: {summary_data['advisory']}"
                             }
                         ],
-                        "data": summary_data
+                        "isError": False
                     }
                 )
             
@@ -383,9 +388,18 @@ class MCPServer:
                 )
                 
         except Exception as e:
+            logger.error(f"Tool execution error: {e}")
             return MCPResponse(
                 id=request.id,
-                error=MCPError(code=-32603, message=f"Tool execution failed: {str(e)}").model_dump()
+                result={
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Error executing tool '{tool_name}': {str(e)}"
+                        }
+                    ],
+                    "isError": True
+                }
             )
     
     def handle_list_prompts(self, request: MCPRequest) -> MCPResponse:
@@ -471,18 +485,46 @@ Provide specific recommendations for:
                 error=MCPError(code=-32601, message=f"Unknown prompt: {prompt_name}").model_dump()
             )
         
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "description": f"Weather-based {prompt_name} prompt",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": {
+                                "type": "text",
+                                "text": prompt_text
+                            }
+                        }
+                    ]
+                }
+            )
+    
+    def handle_completion(self, request: MCPRequest) -> MCPResponse:
+        """Handle completion/complete method for auto-completion (optional MCP method)."""
         return MCPResponse(
             id=request.id,
             result={
-                "description": f"Weather-based {prompt_name} prompt",
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": {
-                            "type": "text",
-                            "text": prompt_text
-                        }
-                    }
-                ]
+                "completion": {
+                    "values": [
+                        "get_weather",
+                        "get_forecast", 
+                        "get_weather_insights",
+                        "get_weather_summary_advisory"
+                    ],
+                    "total": 4,
+                    "hasMore": False
+                }
             }
         )
+    
+    def handle_notification(self, request: MCPRequest) -> MCPResponse:
+        """Handle notification methods (optional MCP methods)."""
+        if request.method == "notifications/cancelled":
+            logger.info(f"Request {request.params.get('requestId')} was cancelled")
+        elif request.method == "notifications/progress":
+            logger.info(f"Progress update: {request.params}")
+        
+        # Notifications typically don't send responses
+        return MCPResponse(id=request.id, result={})
