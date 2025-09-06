@@ -204,6 +204,7 @@ export default function Home() {
               <div className="mt-6 text-sm text-gray-400">
                 <p>🔌 Model Context Protocol (MCP) Demo</p>
                 <p>⚡ React NextJS + Python FastAPI + LangChain</p>
+                <p>☁️ Server hosted on Railway</p>
               </div>
             </div>
           )}

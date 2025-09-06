@@ -74,10 +74,21 @@ export default function MCPStatus({ status, onReconnect }: MCPStatusProps) {
         )}
       </div>
       
-      {status === ConnectionStatus.ERROR && (
-        <p className="text-xs text-red-600 mt-1">
-          Make sure the MCP server is running on localhost:8000
+      {status === ConnectionStatus.CONNECTED && (
+        <p className="text-xs text-green-600 mt-1">
+          Connected to Railway MCP Server: mcp-server-production-3da3.up.railway.app
         </p>
+      )}
+      
+      {status === ConnectionStatus.ERROR && (
+        <div>
+          <p className="text-xs text-red-600 mt-1">
+            Unable to connect to MCP server at Railway. Check your network connection.
+          </p>
+          <p className="text-xs text-red-500 mt-1">
+            Server: https://mcp-server-production-3da3.up.railway.app
+          </p>
+        </div>
       )}
     </div>
   );
