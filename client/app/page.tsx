@@ -12,6 +12,7 @@ import WeatherSummaryAdvisory from '@/components/WeatherSummaryAdvisory';
 export default function Home() {
   const [mcpClient] = useState(() => new MCPClient());
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(ConnectionStatus.DISCONNECTED);
+  const [serverUrl, setServerUrl] = useState<string>('');
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [insights, setInsights] = useState<string>('');
   const [summaryAdvisory, setSummaryAdvisory] = useState<{
@@ -31,6 +32,9 @@ export default function Home() {
       setConnectionStatus(status);
     };
 
+    // Get the server URL being used
+    setServerUrl(mcpClient.getServerUrl());
+    
     // Initialize connection
     initializeConnection();
 
@@ -144,6 +148,7 @@ export default function Home() {
       <MCPStatus 
         status={connectionStatus} 
         onReconnect={handleReconnect}
+        serverUrl={serverUrl}
       />
 
       {error && (

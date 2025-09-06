@@ -11,6 +11,7 @@ import {
 interface MCPStatusProps {
   status: ConnectionStatus;
   onReconnect?: () => void;
+  serverUrl?: string;
 }
 
 const getStatusInfo = (status: ConnectionStatus) => {
@@ -51,8 +52,26 @@ const getStatusInfo = (status: ConnectionStatus) => {
   }
 };
 
-export default function MCPStatus({ status, onReconnect }: MCPStatusProps) {
+export default function MCPStatus({ status, onReconnect, serverUrl }: MCPStatusProps) {
   const statusInfo = getStatusInfo(status);
+  
+  // Extract server name from URL for display
+  const getServerDisplayName = (url?: string) => {
+    if (!url) return 'Unknown Server';
+    
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.hostname.includes('railway.app')) {
+        return 'Railway MCP Server';
+      } else if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+        return 'Local MCP Server';
+      } else {
+        return `MCP Server (${urlObj.hostname})`;
+      }
+    } catch {
+      return 'MCP Server';
+    }
+  };
 
   return (
     <div className={`${statusInfo.bgColor} ${statusInfo.borderColor} border rounded-lg p-3 mb-4`}>
@@ -74,20 +93,22 @@ export default function MCPStatus({ status, onReconnect }: MCPStatusProps) {
         )}
       </div>
       
-      {status === ConnectionStatus.CONNECTED && (
+      {status === ConnectionStatus.CONNECTED && serverUrl && (
         <p className="text-xs text-green-600 mt-1">
-          Connected to Railway MCP Server: mcp-server-production-3da3.up.railway.app
+          Connected to {getServerDisplayName(serverUrl)}: {serverUrl}
         </p>
       )}
       
       {status === ConnectionStatus.ERROR && (
         <div>
           <p className="text-xs text-red-600 mt-1">
-            Unable to connect to MCP server at Railway. Check your network connection.
+            Unable to connect to {serverUrl ? getServerDisplayName(serverUrl) : 'MCP server'}. Check your network connection.
           </p>
-          <p className="text-xs text-red-500 mt-1">
-            Server: https://mcp-server-production-3da3.up.railway.app
-          </p>
+          {serverUrl && (
+            <p className="text-xs text-red-500 mt-1">
+              Server: {serverUrl}
+            </p>
+          )}
         </div>
       )}
     </div>
